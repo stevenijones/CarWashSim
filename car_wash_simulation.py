@@ -1,12 +1,16 @@
 import simpy
 import random
 
-def car(env, name, car_wash, drying, waxing):
+def car(env, name, car_wash, drying, waxing, wait_times):
     """Car process that goes through wash, dry, and wax steps."""
     print(f"{name} arriving at car wash at {env.now}")
+    arrival_time = env.now
+
     with car_wash.request() as request:
         yield request
         #print(f"{name} entering car wash at {env.now}")
+        wait_time = env.now - arrival_time
+        wait_times.append(wait_time)
         yield env.timeout(random.uniform(5, 10))  # Washing takes 5-10 minutes
         #print(f"{name} leaving car wash at {env.now}")
 
@@ -22,13 +26,13 @@ def car(env, name, car_wash, drying, waxing):
         yield env.timeout(random.uniform(4, 8))  # Waxing takes 4-8 minutes
         print(f"{name} leaving waxing at {env.now}")
 
-def car_generator(env, car_wash, drying, waxing, arrival_rate, max_queue_length, queue_data, car_wash_data, lost_cars):
+def car_generator(env, car_wash, drying, waxing, arrival_rate, max_queue_length, queue_data, car_wash_data, lost_cars, wait_times):
     """Generates cars arriving at the car wash and collects data."""
     car_count = 0
     while True:
         if len(car_wash.queue) < max_queue_length:
             car_count += 1
-            env.process(car(env, f"Car {car_count}", car_wash, drying, waxing))
+            env.process(car(env, f"Car {car_count}", car_wash, drying, waxing, wait_times))
         else:
             lost_cars.append(env.now)  # Record the time when a car is lost
             print(f"Car lost at {env.now} due to queue limit")
@@ -72,14 +76,21 @@ def run_simulation_with_data(run_length, num_systems, max_queue_length, arrival_
     car_wash_data = []
     lost_cars = []
     lost_cars_data = []
+    wait_times = []
 
-    env.process(car_generator(env, car_wash, drying, waxing, arrival_rate, max_queue_length, queue_data, car_wash_data, lost_cars))
+    env.process(car_generator(env, car_wash, drying, waxing, arrival_rate, max_queue_length, queue_data, car_wash_data, lost_cars, wait_times))
     print("Starting simulation...")
     env.process(record_state(env, car_wash, queue_data, car_wash_data, lost_cars_data, lost_cars, run_length))
     print("Simulation in progress...")
     env.run(until=run_length)
+    print("Simulation complete.")
 
-    return queue_data, car_wash_data, lost_cars_data
+    # Calculate metrics
+    longest_wait = max(wait_times) if wait_times else 0
+    average_wait = sum(wait_times) / len(wait_times) if wait_times else 0
+    total_reneged = len(lost_cars)
+
+    return queue_data, car_wash_data, lost_cars_data, longest_wait, average_wait, total_reneged
 
 if __name__ == "__main__":
     run_simulation_with_data(run_length=500, num_systems=2, max_queue_length=5, arrival_rate=0.6)

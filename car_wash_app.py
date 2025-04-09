@@ -15,7 +15,9 @@ def main():
         st.write("Running simulation...")
 
         # Run the simulation and collect data
-        queue_data, car_wash_data, lost_cars = run_simulation_with_data(run_length, num_systems, max_queue_length, arrival_rate)
+        queue_data, car_wash_data, lost_cars, longest_wait, average_wait, total_reneged = run_simulation_with_data(
+            run_length, num_systems, max_queue_length, arrival_rate
+        )
 
         # Ensure the time points cover the entire run length
         time_points = list(range(run_length))
@@ -25,6 +27,12 @@ def main():
         car_wash_data += [0] * (run_length - len(car_wash_data))
         lost_cars += [0] * (run_length - len(lost_cars))
 
+        # Display metrics
+        st.write("### Simulation Metrics")
+        st.write(f"**Longest Wait Time:** {longest_wait:.2f} minutes")
+        st.write(f"**Average Wait Time:** {average_wait:.2f} minutes")
+        st.write(f"**Total Reneged Cars:** {total_reneged}")
+        
         # Create dataframes for visualization
         queue_df = pd.DataFrame({"Time": time_points, "Queue Length": queue_data})
         car_wash_df = pd.DataFrame({"Time": time_points, "Cars in Wash": car_wash_data})
