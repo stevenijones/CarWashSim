@@ -15,7 +15,7 @@ def main():
         st.write("Running simulation...")
 
         # Run the simulation and collect data
-        queue_data, car_wash_data = run_simulation_with_data(run_length, num_systems, max_queue_length, arrival_rate)
+        queue_data, car_wash_data, lost_cars = run_simulation_with_data(run_length, num_systems, max_queue_length, arrival_rate)
 
         # Ensure the time points cover the entire run length
         time_points = list(range(run_length))
@@ -23,10 +23,12 @@ def main():
         # Adjust queue_data and car_wash_data to match the run length
         queue_data += [0] * (run_length - len(queue_data))
         car_wash_data += [0] * (run_length - len(car_wash_data))
+        lost_cars += [0] * (run_length - len(lost_cars))
 
         # Create dataframes for visualization
         queue_df = pd.DataFrame({"Time": time_points, "Queue Length": queue_data})
         car_wash_df = pd.DataFrame({"Time": time_points, "Cars in Wash": car_wash_data})
+        lost_cars_df = pd.DataFrame({"Time": time_points, "Lost Cars": lost_cars})
 
         # Plot queue length as a line chart
         st.write("### Queue Length Over Time")
@@ -35,6 +37,10 @@ def main():
         # Plot cars in wash as a column chart
         st.write("### Cars in Wash Over Time")
         st.bar_chart(car_wash_df.set_index("Time"))
+
+        # Plot lost cars as a line chart
+        st.write("### Lost Cars Over Time")
+        st.line_chart(lost_cars_df.set_index("Time"))
 
         st.write("Simulation complete!")
 
