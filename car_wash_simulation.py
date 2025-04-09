@@ -33,8 +33,20 @@ def car_generator(env, car_wash, drying, waxing, arrival_rate, max_queue_length,
         car_wash_data.append(len(car_wash.users))
         yield env.timeout(random.expovariate(arrival_rate))
 
+def validate_inputs(run_length, num_systems, max_queue_length, arrival_rate):
+    if run_length <= 0:
+        raise ValueError("Run length must be greater than 0.")
+    if num_systems <= 0:
+        raise ValueError("Number of systems must be greater than 0.")
+    if max_queue_length <= 0:
+        raise ValueError("Max queue length must be greater than 0.")
+    if arrival_rate <= 0:
+        raise ValueError("Arrival rate must be greater than 0.")
+
 def run_simulation_with_data(run_length, num_systems, max_queue_length, arrival_rate):
     """Run the car wash simulation and collect data."""
+    validate_inputs(run_length, num_systems, max_queue_length, arrival_rate)
+
     env = simpy.Environment()
     car_wash = simpy.Resource(env, capacity=num_systems)
     drying = simpy.Resource(env, capacity=num_systems)
