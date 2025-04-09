@@ -17,8 +17,14 @@ def main():
         # Run the simulation and collect data
         queue_data, car_wash_data = run_simulation_with_data(run_length, num_systems, max_queue_length, arrival_rate)
 
+        # Ensure the time points cover the entire run length
+        time_points = list(range(run_length))
+
+        # Adjust queue_data and car_wash_data to match the run length
+        queue_data += [0] * (run_length - len(queue_data))
+        car_wash_data += [0] * (run_length - len(car_wash_data))
+
         # Create dataframes for visualization
-        time_points = list(range(len(queue_data)))
         queue_df = pd.DataFrame({"Time": time_points, "Queue Length": queue_data})
         car_wash_df = pd.DataFrame({"Time": time_points, "Cars in Wash": car_wash_data})
 
